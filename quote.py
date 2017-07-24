@@ -12,6 +12,8 @@ import json
 import warnings
 import utils
 
+CONFIG_DIR = '../config/'
+
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 DEFAULT_LOOKBACK = 3
@@ -22,7 +24,7 @@ class Quote:
         self.year, self.month, self.day, self.weekday = utils.date_and_time()
         self.lookback = lookback
         self.fresh_data = fresh_data
-        self.quandl_key = open('quandl_key', 'r').readline().strip('\n')
+        self.quandl_key = open(CONFIG_DIR + 'quandl_key', 'r').readline().strip('\n')
 
     def form_url_quandl(self, sym):
         start = str(self.year - self.lookback) + '-' + str(self.month) + '-' + str(self.day)
