@@ -10,11 +10,12 @@ from datetime import datetime
 import pandas as pd
 import json
 import warnings
+import config
 import utils
 
-CONFIG_DIR = '../config/'
-
 warnings.simplefilter(action='ignore', category=FutureWarning)
+
+CONFIG_DIR = config.CONFIG_DIR
 
 DEFAULT_LOOKBACK = 3
 

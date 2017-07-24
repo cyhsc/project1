@@ -1,21 +1,23 @@
 import sys
 import os
 import pandas as pd
+import config
 from quote import Quote
 from analysis import Analysis
 
-data_dir = 'data/'
+DATA_DIR = config.DATA_DIR
+
 symbol = 'CSCO'
 
 def test1(sym):
     q = Quote()
     spy_df = q.get('spy', 'google')
-    df = q.get(sym, 'google')
+    df = q.get(sym, 'quandl')
     a = Analysis()
     a.analysis(df, spy_df)
 
     if df is not None:
-        df.to_csv(data_dir + sym + '.csv')
+        df.to_csv(DATA_DIR + sym + '.csv')
 
 # ==============================================================================
 #   Main
@@ -28,12 +30,12 @@ def main(argv):
     pd.set_option('display.max_rows', None)
     pd.set_option('display.width', 1000)
 
-    if not os.path.isdir(data_dir):
-        os.makedirs(data_dir)
+    if not os.path.isdir(DATA_DIR):
+        os.makedirs(DATA_DIR)
 
     test1(symbol)
 
-    df = pd.read_csv('data/' + symbol + '.csv')
+    df = pd.read_csv(DATA_DIR + symbol + '.csv')
     print df
 
 if __name__ == '__main__':
