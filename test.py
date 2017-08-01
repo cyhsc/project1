@@ -13,11 +13,16 @@ def test1(sym):
     q = Quote()
     spy_df = q.get('spy', 'google')
     df = q.get(sym, 'quandl')
-    a = Analysis()
+    a = Analysis(sym)
     a.analysis(df, spy_df)
 
     if df is not None:
         df.to_csv(DATA_DIR + sym + '.csv')
+
+def test2(sym):
+    df = pd.read_csv(DATA_DIR + sym + '.csv', index_col = 0)
+    a = Analysis(sym)
+    a.renko(df)
 
 # ==============================================================================
 #   Main
@@ -34,9 +39,6 @@ def main(argv):
         os.makedirs(DATA_DIR)
 
     test1(symbol)
-
-    df = pd.read_csv(DATA_DIR + symbol + '.csv')
-    print df
 
 if __name__ == '__main__':
     main(sys.argv[1:])

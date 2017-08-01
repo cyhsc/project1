@@ -2,6 +2,9 @@ import os
 import pandas as pd
 import numpy as np
 from tech import TechData
+import config
+
+DATA_DIR = config.DATA_DIR
 
 ##############################################################################################
 #
@@ -11,8 +14,8 @@ from tech import TechData
 
 class Analysis:
 
-    def __init__(self):
-        pass
+    def __init__(self, symbol):
+        self.symbol = symbol
 
     # ---------------------------------------------------
     # Calculate min/max of a data series
@@ -136,6 +139,50 @@ class Analysis:
         data['macd_sig_roc_pb'] = self.positive_bars(data['macd_sig_roc'])
         data['macd_hist_roc'] = self.roc(data['macd_hist'])
         data['macd_hist_pb'] = self.positive_bars(data['macd_hist'])
+
+    #-------------------------------------------------------------------
+    #   Renko Analysis
+    #   - data: Pandas dataframe object containing quotes
+    #   
+    #   Output:
+    #   - True Renko bars, one bar per row in data frame
+    #-------------------------------------------------------------------
+    def renko(self, data):
+
+        renko_data = data['renko']
+        #print renko_raw
+        renko_df = pd.DataFrame(columns = ['date', 'color', 'low', 'high', 'close'])
+
+        loc = 0
+        for index, row in data.iterrows():
+             if row['renko'] == '<':
+                 continue
+ 
+             if row['renko'].split(',')[0] == 'Base':
+                 continue
+
+             color = row['renko'].split(',')[0]
+             count = int(row['renko'].split(',')[1])
+             high = float(row['renko'].split(',')[2])
+             low = float(row['renko'].split(',')[3])
+             delta = high - low
+
+             if count <= 1:
+                 renko_df.loc[loc] = [index, color, low, high, (low + high)/2]
+                 loc = loc + 1
+             else:
+                 for i in range(count):
+                     if color == 'W':
+                         new_low = low - (count - 1 - i)*delta
+                         new_high = high - (count - 1 - i)*delta
+                     else:
+                         new_low = low + (count - 1 - i)*delta
+                         new_high = high + (count - 1 - i)*delta
+
+                     renko_df.loc[loc] = [index, color, new_low, new_high, (low + high)/2]
+                     loc = loc + 1
+
+        return renko_df
         
     #-------------------------------------------------------------------
     #   Overall Analysis
@@ -147,9 +194,16 @@ class Analysis:
         td.volume(df)
         td.macd(df)
         td.guppy(df)
-        td.relative(df, ref_df)
+        if ref_df != None:
+            td.relative(df, ref_df)
         td.atr(df)
         td.renko(df)
         self.guppy(df)
         self.macd(df)
+
+        renko_df = self.renko(df)
+        td.guppy(renko_df)
+        self.guppy(renko_df)
         
+        if renko_df is not None:
+            renko_df.to_csv(DATA_DIR + self.symbol + '_renko' + '.csv')
