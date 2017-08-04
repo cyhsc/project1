@@ -5,6 +5,7 @@ import config
 from quote import Quote
 from analysis import Analysis
 from renko_pattern import RenkoPatterns
+from finviz import Finviz
 
 DATA_DIR = config.DATA_DIR
 
@@ -34,6 +35,14 @@ def test3(sym):
         print item
     print 'Found at last bar is', found
 
+def test4():
+    fv = Finviz()
+    fv.get_tradable_stocks()
+    name, sector, industry = fv.get_classification('CSCO')
+    print 'Name:', name 
+    print 'Sector:', sector 
+    print 'Industry:', industry
+
 # ==============================================================================
 #   Main
 # ==============================================================================
@@ -48,8 +57,9 @@ def main(argv):
     if not os.path.isdir(DATA_DIR):
         os.makedirs(DATA_DIR)
 
-    test1(symbol)
-    test3(symbol)
+    #test1(symbol)
+    #test3(symbol)
+    test4()
 
 if __name__ == '__main__':
     main(sys.argv[1:])
