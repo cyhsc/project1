@@ -14,8 +14,8 @@ DATA_DIR = config.DATA_DIR
 
 class Analysis:
 
-    def __init__(self, symbol):
-        self.symbol = symbol
+    def __init__(self):
+        pass
 
     # ---------------------------------------------------
     # Calculate min/max of a data series
@@ -187,7 +187,7 @@ class Analysis:
     #-------------------------------------------------------------------
     #   Overall Analysis
     #-------------------------------------------------------------------
-    def analysis(self, df, ref_df):
+    def analysis(self, symbol, df, ref_df):
 
         td = TechData()
  
@@ -206,4 +206,4 @@ class Analysis:
         self.guppy(renko_df)
         
         if renko_df is not None:
-            renko_df.to_csv(DATA_DIR + self.symbol + '_renko' + '.csv')
+            renko_df.to_csv(DATA_DIR + symbol + '_renko' + '.csv')
