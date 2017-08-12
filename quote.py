@@ -106,14 +106,6 @@ class Quote:
         df['close'] = close
         df['volume'] = volume
 
-        ohlc_dict = {
-            'open':'first',
-            'high':'max',
-            'low':'min',
-            'close':'last',
-            'volume':'sum'
-        }
-
         return df
 
     #--------------------------------------------------------------------------------------
@@ -169,11 +161,16 @@ class Quote:
     #--------------------------------------------------------------------------------------
     def get(self, sym, source):
         if source == 'quandl':
-            return self.get_quotes_quandl(sym)
+            df = self.get_quotes_quandl(sym)
         elif source == 'google':
-            return self.get_quotes_google(sym)
+            df = self.get_quotes_google(sym)
         elif source == 'yahoo':
-            return self.get_quotes_yahoo(sym)
+            df = self.get_quotes_yahoo(sym)
         else:
-            return None
+            df = None
     
+        if df is not None:
+            if df.empty: 
+                df = None
+
+        return df
