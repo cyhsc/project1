@@ -243,7 +243,7 @@ def get_url_soup(url):
         return soup
 
     except urllib2.URLError as e:
-        print e.reason
+        print 'Failed to open', url, 'because of', e.reason
         return None
 
 ##############################################################################################
