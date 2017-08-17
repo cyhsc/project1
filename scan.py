@@ -23,24 +23,14 @@ class Scan:
             return
 
         q = Quote()
-
-        self.spy_df = q.get('spy', 'google')
+        self.spy_df = q.update('SPY')
         if self.spy_df is not None:
-            self.spy_df.to_csv(DATA_DIR + 'spy' + '.csv')
+            latest_date = self.spy_df.index[-1]
         else:
-            print 'Cannot get quote for SPY'
-            print self.spy_df
+            latest_date = None
 
         for sym in sym_list:
-            df = q.get(sym, 'google')
-            if df is not None: 
-                df.to_csv(DATA_DIR + sym + '.csv')
-            else:
-                df = q.get(sym, 'quandl')
-                if df is not None:
-                    df.to_csv(DATA_DIR + sym + '.csv')
-                else:
-                    print 'Cannot get quote for', sym
+            df = q.update(sym, latest_date)
  
     def update_analysis(self):
 
