@@ -10,11 +10,13 @@ from datetime import datetime
 import pandas as pd
 import json
 import warnings
+import os
 import config
 import utils
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
+DATA_DIR = config.DATA_DIR
 CONFIG_DIR = config.CONFIG_DIR
 
 DEFAULT_LOOKBACK = 3
@@ -49,6 +51,9 @@ class Quote:
         timeframe_str = '&g=d'
         return base_url + begin_time_str + end_time_str + timeframe_str + '&ignore=.csv'
 
+    def form_url_nasdaq(self, sym): 
+        return 'http://www.nasdaq.com/symbol/' + sym + '/historical'
+
     #--------------------------------------------------------------------------------------
     #   Get historical quote from Google
     #--------------------------------------------------------------------------------------
@@ -65,6 +70,8 @@ class Quote:
             lines = result.readlines()
             lines.reverse()
 
+        print lines
+
         dates = []
         open = []
         high = []
@@ -73,31 +80,30 @@ class Quote:
         volume = []
         for line in lines[:-1]:
             dates.append(utils.google_quote_time_format_convert(line.split(',')[0]))
-
-            if utils.isfloat(line.split(',')[1]): 
+            try: 
                 open.append(float(line.split(',')[1]))
-            else:
-                return None
+            except:
+                open.append(line.split(',')[1])
 
-            if utils.isfloat(line.split(',')[2]):
+            try: 
                 high.append(float(line.split(',')[2]))
-            else:
-                return None
+            except:
+                high.append(line.split(',')[2])
 
-            if utils.isfloat(line.split(',')[3]):
+            try:
                 low.append(float(line.split(',')[3]))
-            else:
-                return None
+            except:
+                low.append(line.split(',')[3])
 
-            if utils.isfloat(line.split(',')[4]):
+            try:
                 close.append(float(line.split(',')[4]))
-            else:
-                return None
+            except:
+                close.append(line.split(',')[4])
 
-            if utils.isint(line.split(',')[5]):
+            try:
                 volume.append(int(line.split(',')[5]))
-            else:
-                return None
+            except:
+                volume.append(line.split(',')[5])
 
         df = pd.DataFrame(index = pd.DatetimeIndex(dates))
         df['open'] = open
@@ -149,12 +155,57 @@ class Quote:
         return df
 
     #--------------------------------------------------------------------------------------
-    #   Get historical quote from Yahoo
+    #   Get historical quote from Nasdaq
     #--------------------------------------------------------------------------------------
-    def get_quotes_yahoo(self, sym):
-        sym = sym.replace('.', '-')
-        url = self.form_url_yahoo(sym)
+    def get_quotes_nasdaq(self, sym):
+        url = self.form_url_nasdaq(sym)
         print url
+        try: 
+            soup = utils.get_url_soup(url)
+        except:
+            print 'Request for', url, 'failed'
+            return None
+
+        quote_div = soup.body.find('div', attrs={'id': 'historicalContainer'})
+        tbody = quote_div.find('tbody')
+        if tbody is None: 
+            return None
+        tr = tbody.find_all('tr')
+        lines = []
+        for item in tr[1:]:
+            td = item.find_all('td')
+            line = []
+            for i in td:
+                tokens = i.contents[0].splitlines()
+                line.append(tokens[1].strip())
+
+            lines.append(line)
+
+        lines = lines[::-1]
+
+        dates = []
+        open = []
+        high = []
+        low = []
+        close = []
+        volume = []
+        for line in lines:
+            tmp = line[0].split('/')
+            dates.append(tmp[2] + '-' + tmp[0] + '-' + tmp[1])
+            open.append(float(line[1]))
+            high.append(float(line[2]))
+            low.append(float(line[3]))
+            close.append(float(line[4]))
+            volume.append(int(line[5].replace(',', '')))
+
+        df = pd.DataFrame(index = dates)
+        df['open'] = open
+        df['high'] = high
+        df['low'] = low
+        df['close'] = close
+        df['volume'] = volume
+
+        return df
 
     #--------------------------------------------------------------------------------------
     #   Return quote data as Pandas DataFrame object
@@ -164,8 +215,8 @@ class Quote:
             df = self.get_quotes_quandl(sym)
         elif source == 'google':
             df = self.get_quotes_google(sym)
-        elif source == 'yahoo':
-            df = self.get_quotes_yahoo(sym)
+        elif source == 'nasdaq':
+            df = self.get_quotes_nasdaq(sym)
         else:
             df = None
     
@@ -174,3 +225,36 @@ class Quote:
                 df = None
 
         return df
+
+    #--------------------------------------------------------------------------------------
+    #   Update quote data 
+    #--------------------------------------------------------------------------------------
+    def update(self, sym, latest_date = None):
+        if os.path.isfile(DATA_DIR + sym + '.csv'): 
+            df = pd.read_csv(DATA_DIR + sym + '.csv', index_col = 0)
+
+            if latest_date is None or df.index[-1] < latest_date:
+                nasdaq_df = self.get(sym, 'nasdaq')
+                if nasdaq_df is None:
+                    return
+
+                latest_date = nasdaq_df.index[-1]
+          
+            print 'Symbol:', sym, ', Last index =', df.index[-1], ', Latest =', latest_date
+
+            if df.index[-1] < latest_date:
+                while nasdaq_df.index[0] <= df.index[-1]:
+                    nasdaq_df = nasdaq_df.drop(nasdaq_df.index[0])
+
+                if nasdaq_df.empty is False:
+                    df = df.append(nasdaq_df)
+        else:
+            df = self.get(sym, 'google')
+            if df is None: 
+                df = self.get(sym, 'quandl')
+
+        if df is not None: 
+            df.to_csv(DATA_DIR + sym + '.csv')
+
+        return df
+
