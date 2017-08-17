@@ -201,6 +201,9 @@ class Analysis:
         self.guppy(df)
         self.macd(df)
 
+        if df is not None:
+            df.to_csv(DATA_DIR + symbol + '_analysis' + '.csv')
+
         renko_df = self.renko(df)
         td.guppy(renko_df)
         self.guppy(renko_df)
