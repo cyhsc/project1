@@ -36,18 +36,15 @@ class Scan:
 
         a = Analysis()
 
-        analysis_files = [ f for f in os.listdir(DATA_DIR) if f.endswith('_analysis.csv') ]
-        for f in analysis_files:
-            os.remove(DATA_DIR + f)
-
-        renko_files = [ f for f in os.listdir(DATA_DIR) if f.endswith('_renko.csv') ]
-        for f in renko_files:
-            os.remove(DATA_DIR + f)
-
-        filelist = [ f for f in os.listdir(DATA_DIR) if f.endswith('.csv') ]
+        filelist = [ f for f in os.listdir(DATA_DIR) if f.endswith('.csv') and not f.endswith('_analysis.csv') and not f.endswith('_renko.csv')]
         for f in filelist:
             sym = f.split('.')[0]
             print 'Analysing', sym, '....'
+            if os.path.isfile(DATA_DIR + sym + '_analysis.csv'):
+                analysis_df = pd.read_csv(DATA_DIR + sym + '_analysis.csv', index_col = 0)
+                if analysis_df.empty is False: 
+                    if analysis_df.index[-1] == self.latest_date:
+                        continue
             df = pd.read_csv(DATA_DIR + f, index_col = 0)
             a.analysis(sym, df, self.spy_df)     
 
@@ -63,6 +60,17 @@ class Scan:
         if len(symbol_list) == 0: 
             print 'Symbol list is empty, so nothing is being done'
             return
+
+        # --------------------------------------------------------------------- 
+        # Read in existing SPY quote file if exists
+        # --------------------------------------------------------------------- 
+        if os.path.isfile(DATA_DIR + 'SPY.csv'):
+            print 'read spy.csv'
+            self.spy_df = pd.read_csv(DATA_DIR + 'SPY.csv', index_col = 0)
+            if self.spy_df is not None:
+                self.latest_date = self.spy_df.index[-1]
+            else:
+                self.latest_date = None
 
         self.update_quotes(symbol_list) 
         self.update_analysis() 
