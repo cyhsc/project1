@@ -194,7 +194,7 @@ class Analysis:
         td.volume(df)
         td.macd(df)
         td.guppy(df)
-        if ref_df != None:
+        if ref_df is not None:
             td.relative(df, ref_df)
         td.atr(df)
         td.renko(df)
