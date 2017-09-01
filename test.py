@@ -119,9 +119,9 @@ def main(argv):
 
     #test1(symbol)
     #test3(symbol)
-    #test4()
+    test4()
     #test5()
-    test6()
+    #test6()
     #test7()
     #test8()
 
