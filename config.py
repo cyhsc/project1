@@ -2,6 +2,8 @@ CONFIG_DIR = '../config/'
 DATA_DIR = '../data/'
 TRADABLE_STOCKS = '../data/tradable_stocks.txt'
 CUR_SYM = '../data/cur_symbol.txt'
+TWEETS_DIR = '../tweets/'
+SCRN_NAMES = TWEETS_DIR + 'scrn_names.txt'
 
 ACCESS_TOKEN = 0
 ACCESS_SECRET = 1

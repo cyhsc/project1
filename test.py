@@ -7,6 +7,7 @@ from analysis import Analysis
 from renko_pattern import RenkoPatterns
 from finviz import Finviz
 from scan import Scan
+from tweets import Tweets
 
 DATA_DIR = config.DATA_DIR
 sym_file = config.TRADABLE_STOCKS
@@ -102,7 +103,12 @@ def test8():
             print df.loc['2017-07-31']
             print ndf.loc['2017-07-31']
             df.to_csv(DATA_DIR + sym + '.csv')
- 
+
+def test9():
+
+    t = Tweets()
+    t.update()
+
 # ==============================================================================
 #   Main
 # ==============================================================================
@@ -119,11 +125,12 @@ def main(argv):
 
     #test1(symbol)
     #test3(symbol)
-    test4()
+    #test4()
     #test5()
     #test6()
     #test7()
     #test8()
+    test9()
 
 if __name__ == '__main__':
     main(sys.argv[1:])
