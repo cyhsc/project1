@@ -4,6 +4,7 @@ from tweets import Tweets
 def update_tweets():
     t = Tweets()
     t.update()
+    t.process()
 
 # ==============================================================================
 #   Main

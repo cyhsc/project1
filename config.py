@@ -1,6 +1,7 @@
 CONFIG_DIR = '../config/'
 DATA_DIR = '../data/'
 TRADABLE_STOCKS = '../data/tradable_stocks.txt'
+IBD_STOCKS = '../data/ibd_stocks.json'
 CUR_SYM = '../data/cur_symbol.txt'
 TWEETS_DIR = '../tweets/'
 SCRN_NAMES = TWEETS_DIR + 'scrn_names.txt'
