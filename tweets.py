@@ -46,20 +46,25 @@ class Tweets:
             print name
             filename = TWEETS_DIR + name + '.txt'
 
-            rfile = open(filename, 'r')
-            old_items = rfile.read().split('\n')
-            rfile.close()
-            print old_items
+            if os.path.isfile(filename):
+                rfile = open(filename, 'r')
+                old_items = rfile.read().split('\n')
+                rfile.close()
+                print old_items
+            else:
+                old_items = []
 
 
             #=========================================================
             # Find the last tweet id we have seen
             #=========================================================
             last_id = 0
-            if len(old_items[-1]) < 1: 
-                old_items = old_items[:-1]
+            if len(old_items) > 0:
+                if len(old_items[-1]) < 1: 
+                    old_items = old_items[:-1]
             
-            last_id = int(old_items[-1].split(',')[0])
+                last_id = int(old_items[-1].split(',')[0])
+
             print 'last_id =', last_id, '\n'
 
             #=========================================================
@@ -67,6 +72,7 @@ class Tweets:
             #=========================================================
             items = self.get_user_timeline(name, 100)
             new_item_found = 0
+            new_items = []
             for item in items[::-1]:
                 id = item['id']
                 if id > last_id:
@@ -74,14 +80,14 @@ class Tweets:
                     text = item['text'].replace('\n', ' ')
                     output_text = (str(item['id']) + ',' + item['created_at'] + ',' + text + '\n').encode('utf8', 'replace')
                     print 'Append new itme', output_text
-                    old_items.append(output_text)
+                    new_items.append(output_text)
 
             #=========================================================
             # Save the tweets
             #=========================================================
             if new_item_found == 1:
-                wfile = open(filename, 'w')
-                for item in old_items:
+                wfile = open(filename, 'a')
+                for item in new_items:
                     wfile.write(item)
                 wfile.close()
 
