@@ -102,6 +102,9 @@ class TweetMessages:
         print date, words
         for item in words: 
 
+            if len(item) < 1: 
+                continue
+
             if item[0] != '$': 
                 continue
 
