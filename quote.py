@@ -258,3 +258,47 @@ class Quote:
 
         return df
 
+    #--------------------------------------------------------------------------------------
+    #   Sanitize quote data
+    #--------------------------------------------------------------------------------------
+    def sanitize(self, sym):
+        if os.path.isfile(DATA_DIR + sym + '.csv') is False:
+            print 'Symbol', sym, 'quote file does not exist????'
+            return
+
+        df = pd.read_csv(DATA_DIR + sym + '.csv', index_col = 0)
+
+        bad_entry_index = []
+
+        for i in df.index:
+            #print i, df.ix[i, 'open'], df.ix[i, 'high'], df.ix[i, 'low'], df.ix[i, 'close'], df.ix[i, 'volume']
+            if df.ix[i, 'open'] == '-' or df.ix[i, 'high'] == '-' or df.ix[i, 'low'] == '-' or df.ix[i, 'close'] == '-':
+                bad_entry_index.append(i)
+
+        if len(bad_entry_index) == 0:
+            print 'No bad entries, done'
+            return
+
+        print 'Have bad entries ....'
+        print bad_entry_index
+        nasdaq_df = self.get(sym, 'nasdaq')        
+        if nasdaq_df is None:
+            print 'Cannot get quote data from Nasdaq ???'
+            return
+ 
+        for i in bad_entry_index:
+            print i, nasdaq_df.ix[i, 'open'], nasdaq_df.ix[i, 'high'], nasdaq_df.ix[i, 'low'], nasdaq_df.ix[i, 'close']
+                
+            if df.ix[i, 'open'] == '-':
+                df.ix[i, 'open'] = str(nasdaq_df.ix[i, 'open'])
+            if df.ix[i, 'high'] == '-':
+                df.ix[i, 'high'] = str(nasdaq_df.ix[i, 'high'])
+            if df.ix[i, 'low'] == '-':
+                df.ix[i, 'low'] = str(nasdaq_df.ix[i, 'low'])
+            if df.ix[i, 'close'] == '-':
+                df.ix[i, 'close'] = str(nasdaq_df.ix[i, 'close'])
+
+        print 'Writing to file ...'
+        df.to_csv(DATA_DIR + sym + '.csv')
+           
+
