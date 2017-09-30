@@ -43,8 +43,8 @@ class TweetMessages:
             self.process_ibd_50(msg, stocks)
         elif words[1].lower() == 'big' and words[2].lower() == 'cap':
             self.process_ibd_big_cap(msg, stocks)
-        elif words[1].lower() == 'new' and words[2].lower() == 'high':
-            self.process_ibd_new_highs(msg, stocks)
+        #elif words[1].lower() == 'new' and words[2].lower() == 'high':
+        #    self.process_ibd_new_highs(msg, stocks)
         elif words[1].lower() == 'relative' and words[2].lower() == 'strength':
             self.process_ibd_relative_strength(msg, stocks)
         elif words[1].lower() == 'stock' and words[2].lower() == 'spotlight':
