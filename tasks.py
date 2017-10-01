@@ -1,10 +1,16 @@
 import sys
+from scan import Scan
 from tweets import Tweets
 
 def update_tweets():
     t = Tweets()
     t.update()
     t.process()
+
+def update_scan():
+    sym_list = ['CSCO', 'LMT']
+    sc = Scan()
+    sc.run(sym_list)
 
 # ==============================================================================
 #   Main
@@ -21,6 +27,10 @@ def main(argv):
 
     if argv[0] == '-t':
         update_tweets()
+        return
+
+    if argv[0] == '-s':
+        update_scan()
         return
 
 if __name__ == '__main__':
