@@ -4,7 +4,7 @@ import numpy as np
 from tech import TechData
 import config
 
-DATA_DIR = config.DATA_DIR
+ANALYSIS_DIR = config.ANALYSIS_DIR
 
 ##############################################################################################
 #
@@ -139,6 +139,7 @@ class Analysis:
         data['macd_sig_roc_pb'] = self.positive_bars(data['macd_sig_roc'])
         data['macd_hist_roc'] = self.roc(data['macd_hist'])
         data['macd_hist_pb'] = self.positive_bars(data['macd_hist'])
+        data['macd_hist_roc_pb'] = self.positive_bars(data['macd_hist_roc'])
 
     #-------------------------------------------------------------------
     #   Renko Analysis
@@ -194,19 +195,19 @@ class Analysis:
         td.volume(df)
         td.macd(df)
         td.guppy(df)
-        if ref_df is not None:
-            td.relative(df, ref_df)
+        #if ref_df is not None:
+        #    td.relative(df, ref_df)
         td.atr(df)
         td.renko(df)
         self.guppy(df)
         self.macd(df)
 
         if df is not None:
-            df.to_csv(DATA_DIR + symbol + '_analysis' + '.csv')
+            df.to_csv(ANALYSIS_DIR + symbol + '_analysis' + '.csv')
 
         renko_df = self.renko(df)
         td.guppy(renko_df)
         self.guppy(renko_df)
         
         if renko_df is not None:
-            renko_df.to_csv(DATA_DIR + symbol + '_renko' + '.csv')
+            renko_df.to_csv(ANALYSIS_DIR + symbol + '_renko' + '.csv')
