@@ -1,5 +1,6 @@
 CONFIG_DIR = '../config/'
 DATA_DIR = '../data/'
+ANALYSIS_DIR = '../analysis/'
 TRADABLE_STOCKS = '../data/tradable_stocks.txt'
 IBD_STOCKS = '../data/ibd_stocks.json'
 CUR_SYM = '../data/cur_symbol.txt'
