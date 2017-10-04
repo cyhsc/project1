@@ -1,16 +1,28 @@
 import sys
+import os
 from scan import Scan
 from tweets import Tweets
+import config
+
+DATA_DIR = config.DATA_DIR
 
 def update_tweets():
     t = Tweets()
     t.update()
     t.process()
 
-def update_scan():
-    sym_list = ['CSCO', 'LMT']
+def perform_scan():
+
+    symbols = []
+
+    filelist = [ f for f in os.listdir(DATA_DIR) if f.endswith('.csv') and not f.endswith('_analysis.csv') and not f.endswith('_renko.csv')]
+    for f in filelist:
+        sym = f.split('.')[0]
+        if sym != 'SPY':
+            symbols.append(sym)
+
     sc = Scan()
-    sc.run(sym_list)
+    sc.run(symbols)
 
 # ==============================================================================
 #   Main
@@ -30,7 +42,7 @@ def main(argv):
         return
 
     if argv[0] == '-s':
-        update_scan()
+        perform_scan()
         return
 
 if __name__ == '__main__':
