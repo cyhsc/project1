@@ -29,15 +29,15 @@ def get_tradable_stocks():
 def test1(sym):
     q = Quote()
     df = q.get(sym, 'nasdaq')
-    #a = Analysis()
-    #a.analysis(sym, df, spy_df)
    
     print df
 
 def test2(sym):
     df = pd.read_csv(DATA_DIR + sym + '.csv', index_col = 0)
-    a = Analysis(sym)
-    a.renko(df)
+    a = Analysis()
+    a.analysis(sym, df, None)
+   
+    #a.renko(df)
 
 def test3(sym): 
     df = pd.read_csv(DATA_DIR + sym + '_renko.csv', index_col = 0)
@@ -76,13 +76,14 @@ def test5():
             a.analysis(sym, df, spy_df)
             df.to_csv(DATA_DIR + sym + '.csv')
 
-def test6():
-    sc = Scan()
-    sc.run()
+def test6(sym):
+    q = Quote()
+    q.update(sym)
 
 def test7():
-    q = Quote()
-    q.update('SPY')
+    sym_list = ['CSCO']
+    sc = Scan()
+    sc.run(sym_list)
 
 def test8():
     q = Quote()
@@ -105,7 +106,17 @@ def test8():
             df.to_csv(DATA_DIR + sym + '.csv')
 
 def test9():
-    pass
+    sc = Scan()
+    sym_list = sc.ibd_watch_list('ibd 50')
+    sc.run(sym_list)
+
+def test10():
+    q = Quote()
+    filelist = [ f for f in os.listdir(DATA_DIR) if f.endswith('.csv') and not f.endswith('_analysis.csv') and not f.endswith('_renko.csv')]
+    for f in filelist:
+        sym = f.split('.')[0]
+        print 'Sanitizing', sym, '....'    
+        q.sanitize(sym)
 
 # ==============================================================================
 #   Main
@@ -122,13 +133,15 @@ def main(argv):
         os.makedirs(DATA_DIR)
 
     #test1(symbol)
+    #test2('FIZZ')
     #test3(symbol)
     #test4()
     #test5()
-    #test6()
+    #test6('CSCO')
     #test7()
     #test8()
     test9()
+    #test10()
 
 if __name__ == '__main__':
     main(sys.argv[1:])
