@@ -11,6 +11,7 @@ import pandas as pd
 import json
 import warnings
 import os
+import time
 import config
 import utils
 
@@ -52,7 +53,7 @@ class Quote:
         return base_url + begin_time_str + end_time_str + timeframe_str + '&ignore=.csv'
 
     def form_url_nasdaq(self, sym): 
-        return 'http://www.nasdaq.com/symbol/' + sym + '/historical'
+        return 'http://www.nasdaq.com/symbol/' + sym.lower() + '/historical'
 
     #--------------------------------------------------------------------------------------
     #   Get historical quote from Google
@@ -172,7 +173,9 @@ class Quote:
             return None
         tr = tbody.find_all('tr')
         lines = []
-        for item in tr[1:]:
+        #print tr
+        #for item in tr[1:]:
+        for item in tr:
             td = item.find_all('td')
             line = []
             for i in td:
@@ -190,12 +193,15 @@ class Quote:
         close = []
         volume = []
         for line in lines:
-            tmp = line[0].split('/')
-            dates.append(tmp[2] + '-' + tmp[0] + '-' + tmp[1])
-            open.append(float(line[1]))
-            high.append(float(line[2]))
-            low.append(float(line[3]))
-            close.append(float(line[4]))
+            if line[0] == '16:00': 
+                dates.append(time.strftime('%Y-%m-%d'))
+            else: 
+                tmp = line[0].split('/')
+                dates.append(tmp[2] + '-' + tmp[0] + '-' + tmp[1])
+            open.append(float(line[1].replace(',', '')))
+            high.append(float(line[2].replace(',', '')))
+            low.append(float(line[3].replace(',', '')))
+            close.append(float(line[4].replace(',', '')))
             volume.append(int(line[5].replace(',', '')))
 
         df = pd.DataFrame(index = dates)
@@ -232,6 +238,8 @@ class Quote:
     def update(self, sym, latest_date = None):
         if os.path.isfile(DATA_DIR + sym + '.csv'): 
             df = pd.read_csv(DATA_DIR + sym + '.csv', index_col = 0)
+
+            print latest_date, df.index[-1]
 
             if latest_date is None or df.index[-1] < latest_date:
                 nasdaq_df = self.get(sym, 'nasdaq')
