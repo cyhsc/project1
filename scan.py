@@ -10,6 +10,7 @@ from finviz import Finviz
 from report import Report
 
 DATA_DIR = config.DATA_DIR
+ANALYSIS_DIR = config.ANALYSIS_DIR
 sym_file = config.TRADABLE_STOCKS
 current_sym_file = config.CUR_SYM
 ibd_stock_file = config.IBD_STOCKS
@@ -52,8 +53,8 @@ class Scan:
 
         for sym in analysis_symbol_list:
             print 'Analysing', sym, '....'
-            if os.path.isfile(DATA_DIR + sym + '_analysis.csv'):
-                analysis_df = pd.read_csv(DATA_DIR + sym + '_analysis.csv', index_col = 0)
+            if os.path.isfile(ANALYSIS_DIR + sym + '_analysis.csv'):
+                analysis_df = pd.read_csv(ANALYSIS_DIR + sym + '_analysis.csv', index_col = 0)
                 if analysis_df.empty is False: 
                     if analysis_df.index[-1] == self.latest_date:
                         continue
