@@ -24,6 +24,10 @@ def perform_scan():
     sc = Scan()
     sc.run(symbols)
 
+def perform_percent_change_scan():
+    sc = Scan()
+    sc.percent_change(3.0, 1.5)
+
 # ==============================================================================
 #   Main
 # ==============================================================================
@@ -44,6 +48,12 @@ def main(argv):
     if argv[0] == '-s':
         perform_scan()
         return
+
+    if argv[0] == '-p':
+        perform_percent_change_scan()
+        return
+
+    
 
 if __name__ == '__main__':
     main(sys.argv[1:])
