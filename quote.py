@@ -173,13 +173,13 @@ class Quote:
             return None
         tr = tbody.find_all('tr')
         lines = []
-        #print tr
-        #for item in tr[1:]:
         for item in tr:
             td = item.find_all('td')
             line = []
             for i in td:
                 tokens = i.contents[0].splitlines()
+                if (len(tokens) == 1) or (tokens[1] == ''):
+                    continue
                 line.append(tokens[1].strip())
 
             lines.append(line)
@@ -193,6 +193,8 @@ class Quote:
         close = []
         volume = []
         for line in lines:
+            if len(line) == 0:
+                continue
             if line[0] == '16:00': 
                 dates.append(time.strftime('%Y-%m-%d'))
             else: 
