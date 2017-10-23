@@ -196,7 +196,8 @@ class Quote:
             if len(line) == 0:
                 continue
             if line[0] == '16:00': 
-                dates.append(time.strftime('%Y-%m-%d'))
+                #dates.append(time.strftime('%Y-%m-%d'))
+                continue
             else: 
                 tmp = line[0].split('/')
                 dates.append(tmp[2] + '-' + tmp[0] + '-' + tmp[1])
@@ -258,6 +259,8 @@ class Quote:
 
                 if nasdaq_df.empty is False:
                     df = df.append(nasdaq_df)
+            else:
+                print 'Quote data already up to date'
         else:
             df = self.get(sym, 'google')
             if df is None: 
@@ -311,4 +314,23 @@ class Quote:
         print 'Writing to file ...'
         df.to_csv(DATA_DIR + sym + '.csv')
            
+    def dedupe_index(self, sym):
+        if os.path.isfile(DATA_DIR + sym + '.csv') is False:
+            print 'Symbol', sym, 'quote file does not exist????'
+            return
 
+        df = pd.read_csv(DATA_DIR + sym + '.csv', index_col = 0)
+        ddf = df.reset_index().drop_duplicates(subset='index', keep='last').set_index('index')
+            
+        #print ddf
+        print 'Writing deduped quote for', sym, 'to file ...'
+        ddf.to_csv(DATA_DIR + sym + '.csv')
+
+    def dedupe_index_all(self):
+
+        filelist = [ f for f in os.listdir(DATA_DIR) if f.endswith('.csv') ]
+        for f in filelist:
+            sym = f.split('.')[0]
+            self.dedupe_index(sym)
+        
+        
