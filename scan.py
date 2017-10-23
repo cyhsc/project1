@@ -4,6 +4,7 @@ import json
 import pandas as pd
 import time
 import config
+import utils
 from quote import Quote
 from analysis import Analysis
 from renko_pattern import RenkoPatterns
@@ -22,6 +23,32 @@ class Scan:
     def __init__(self):
         self.latest_date = ''
         self.spy_df = None
+
+    def get_analysis_df(self, sym):
+        analysis_df = pd.read_csv(ANALYSIS_DIR + sym + '_analysis.csv', index_col = 0)
+        return analysis_df
+
+    def get_quote_symbol_list(self):
+
+        quote_symbol_list = []
+
+        filelist = [ f for f in os.listdir(DATA_DIR) if f.endswith('.csv') ]
+        for f in filelist:
+            sym = f.split('.')[0]
+            quote_symbol_list.append(sym)
+
+        return quote_symbol_list
+
+    def get_analysis_symbol_list(self):
+
+        analysis_symbol_list = []
+
+        filelist = [ f for f in os.listdir(ANALYSIS_DIR) if f.endswith('.csv') and not f.endswith('_renko.csv')]
+        for f in filelist:
+            sym = f.split('.')[0]
+            analysis_symbol_list.append(sym.replace('_analysis', ''))
+
+        return analysis_symbol_list
 
     def update_quotes(self, sym_list = None):
 
@@ -97,6 +124,12 @@ class Scan:
         r.report(symbol_list)
   
     def ibd_watch_list(self, type):
+ 
+        #
+        # 'ibd 50'
+        # 'ibd spotlight'
+        # 'ibd relative strength'
+        #
 
         if os.path.isfile(ibd_stock_file):
             fp = open(ibd_stock_file, 'r')
@@ -111,11 +144,23 @@ class Scan:
         for key in stocks.keys():
             entry = stocks[key];
             if type in entry.keys():
-                print entry
-                symbol_list.append(key)
+                # print entry[type]
+                symbol_list.append([key, entry[type][-1]])
 
-        print symbol_list
+        for sym in symbol_list:
+            print sym
         print len(symbol_list)
+
+        diff_list = []
+        quote_symbol_list = self.get_quote_symbol_list()
+        for sym in symbol_list:
+            if sym[0] not in quote_symbol_list:
+                diff_list.append(sym)
+
+        print '=============  Diff List ============='
+        print len(diff_list)
+        for sym in diff_list:
+            print sym
 
         return symbol_list
 
@@ -126,7 +171,10 @@ class Scan:
         pc_value = float(percent_change[1:].strip('%'))
 
         volume = float(res['volume'])
-        average_volume = float(res['average_volume'])
+        if res['average_volume'] != 'N/A':
+            average_volume = float(res['average_volume'])
+        else:
+            average_volume = 300000
         volume_ratio = volume/average_volume
 
         print sym, percent_change, volume, average_volume, volume_ratio
@@ -158,6 +206,21 @@ class Scan:
 
     def percent_change(self, pc, vr, symbol_list = None):
 
+        year, month, day, weekday = utils.date_and_time()
+        date_string = str(year) + '-' + str(month) + '-' + str(day)
+        print 'Today is', date_string
+
+        if os.path.isfile(ANALYSIS_DIR + 'percent_mover.json'):
+            percent_mover = json.loads(open(ANALYSIS_DIR + 'percent_mover.json', 'r').read())
+        else:
+            percent_mover = {}
+
+        if date_string in percent_mover.keys():
+            print 'Already scanned, do nothing'
+            return
+        else:
+            print 'Have not scanned today, scanning ...'
+
         scan_symbol_list = []
 
         if symbol_list != None:
@@ -178,6 +241,12 @@ class Scan:
             if ret != None: 
                 result.append(ret)
             time.sleep(1)
+
+        percent_mover[date_string] = result
+
+        fp = open(ANALYSIS_DIR + 'percent_mover.json', 'w')
+        fp.write(json.dumps(percent_mover, indent=4))
+        fp.close()
 
         if len(result) == 0: 
             print 'Scan result emtpy'
