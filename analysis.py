@@ -65,14 +65,23 @@ class Analysis:
             if np.isnan(elem) == True:
                 bars = 0
             elif elem < 0:
-                bars = 0 
+                if bars < 0: 
+                    bars = bars - 1
+                else:
+                    bars = -1 
             elif elem == 0: 
                 if nonneg == True:
-                    bars = bars + 1
+                    if bars >= 0:
+                        bars = bars + 1
+                    else:
+                        bars = 1
                 else:
                     bars = 0
             else:
-                bars = bars + 1
+                if bars >= 0: 
+                    bars = bars + 1
+                else:
+                    bars = 1
 
             r.append(bars)
   
