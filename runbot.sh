@@ -1,4 +1,4 @@
 #!/bin/sh
 
 date
-python tasks.py -t 
+python tasks.py $1 
