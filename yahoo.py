@@ -12,7 +12,7 @@ class Yahoo:
 
     def basic(self, sym):
 
-        url = 'http://download.finance.yahoo.com/d/quotes.csv?s=' + sym + '&f=d1ohgl1vc1p2a2'
+        url = 'http://download.finance.yahoo.com/d/quotes.csv?s=' + sym + '&f=d1ohgl1vc1p2a2j1'
         print url
         html_doc = urlopen(url).read()
         lines = html_doc.split('\n')
@@ -28,5 +28,6 @@ class Yahoo:
         res['change'] = items[6]
         res['percent_change'] = items[7].strip('"')
         res['average_volume'] = items[8]
+        res['capitalization'] = items[9]
         
         return res
