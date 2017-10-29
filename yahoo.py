@@ -12,13 +12,18 @@ class Yahoo:
 
     def basic(self, sym):
 
-        url = 'http://download.finance.yahoo.com/d/quotes.csv?s=' + sym + '&f=d1ohgl1vc1p2a2j1'
+        url = 'http://download.finance.yahoo.com/d/quotes.csv?s=' + sym + '&f=d1ohgl1vc1p2a2j1d1'
         print url
         html_doc = urlopen(url).read()
         lines = html_doc.split('\n')
         items = lines[0].split(',')
-        
+
         res = {}
+
+        for item in items: 
+            if item == 'N/A':
+                return None
+
         res['date'] = items[0].strip('"')
         res['open'] = items[1]
         res['high'] = items[2]
@@ -29,5 +34,11 @@ class Yahoo:
         res['percent_change'] = items[7].strip('"')
         res['average_volume'] = items[8]
         res['capitalization'] = items[9]
+        date = items[10].strip('"')
+        print date
+        date = date.split('/')
+        print date
+        date_str = date[2] + '-' + date[0] + '-' + date[1]
+        res['last_trading_date'] = date_str
         
         return res
