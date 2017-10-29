@@ -53,7 +53,7 @@ class Quote:
         return base_url + begin_time_str + end_time_str + timeframe_str + '&ignore=.csv'
 
     def form_url_nasdaq(self, sym): 
-        return 'http://www.nasdaq.com/symbol/' + sym.lower() + '/historical'
+        return 'http://www.nasdaq.com/symbol/' + sym.lower().replace('-', '.') + '/historical'
 
     #--------------------------------------------------------------------------------------
     #   Get historical quote from Google
