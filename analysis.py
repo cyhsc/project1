@@ -214,9 +214,9 @@ class Analysis:
         if df is not None:
             df.to_csv(ANALYSIS_DIR + symbol + '_analysis' + '.csv')
 
-        renko_df = self.renko(df)
-        td.guppy(renko_df)
-        self.guppy(renko_df)
+        # renko_df = self.renko(df)
+        # td.guppy(renko_df)
+        # self.guppy(renko_df)
         
-        if renko_df is not None:
-            renko_df.to_csv(ANALYSIS_DIR + symbol + '_renko' + '.csv')
+        # if renko_df is not None:
+        #    renko_df.to_csv(ANALYSIS_DIR + symbol + '_renko' + '.csv')
