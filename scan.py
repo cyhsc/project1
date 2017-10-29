@@ -167,6 +167,8 @@ class Scan:
     def percent_change_one_symbol(self, sym, pc, vr):
         y = Yahoo()
         res = y.basic(sym)
+        if res == None: 
+            return None        
         percent_change = res['percent_change']
         pc_value = float(percent_change[1:].strip('%'))
 
@@ -255,4 +257,4 @@ class Scan:
             for item in result:
                 print item
 
-            return result
+        return result
