@@ -151,3 +151,21 @@ class Report:
             self.guppy(analysis_df, wfile)
 
         wfile.close()
+
+    def percent_mover(self):
+    
+        if os.path.isfile(ANALYSIS_DIR + 'percent_mover.json'):
+            percent_mover = json.loads(open(ANALYSIS_DIR + 'percent_mover.json', 'r').read())
+        else:
+            print 'No percent_mover.json, bail'
+            return
+
+        results = []
+
+        keys = percent_mover.keys()
+        print keys
+        for key in keys:
+            print '-------------', key, '-------------'
+            symbols = percent_mover[key]
+            for sym in symbols:
+                print sym
