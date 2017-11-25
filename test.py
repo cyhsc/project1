@@ -8,8 +8,12 @@ from renko_pattern import RenkoPatterns
 from finviz import Finviz
 from scan import Scan
 from tweets import Tweets
+from yahoo import Yahoo
+from wsj import WSJ
+from filter import Filter
 
 DATA_DIR = config.DATA_DIR
+ANALYSIS_DIR = config.ANALYSIS_DIR
 sym_file = config.TRADABLE_STOCKS
 cur_sym_file = config.CUR_SYM
 
@@ -118,6 +122,10 @@ def test10():
         print 'Sanitizing', sym, '....'    
         q.sanitize(sym)
 
+def test11():
+    f = Filter()
+    f.run()
+
 # ==============================================================================
 #   Main
 # ==============================================================================
@@ -140,8 +148,9 @@ def main(argv):
     #test6('CSCO')
     #test7()
     #test8()
-    test9()
+    #test9()
     #test10()
+    test11()
 
 if __name__ == '__main__':
     main(sys.argv[1:])
