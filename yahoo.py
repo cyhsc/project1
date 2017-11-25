@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import urllib2
 from urllib2 import urlopen
 import utils
 import config
@@ -12,9 +13,13 @@ class Yahoo:
 
     def basic(self, sym):
 
-        url = 'http://download.finance.yahoo.com/d/quotes.csv?s=' + sym + '&f=d1ohgl1vc1p2a2j1d1'
+        url = 'http://download.finance.yahoo.com/d/quotes.csv?s=' + sym + '&f=d1ohgl1vc1p2a2j1d1m3m4'
         print url
-        html_doc = urlopen(url).read()
+
+        req = urllib2.Request(url, headers={ 'User-Agent': 'Mozilla/5.0' })
+
+        #html_doc = urlopen(url).read()
+        html_doc = urlopen(req).read()
         lines = html_doc.split('\n')
         items = lines[0].split(',')
 
@@ -40,5 +45,7 @@ class Yahoo:
         print date
         date_str = date[2] + '-' + date[0] + '-' + date[1]
         res['last_trading_date'] = date_str
+        res['ma50'] = items[11]
+        res['ma200'] = items[12]
         
         return res
