@@ -2,6 +2,7 @@ import sys
 import os
 from scan import Scan
 from tweets import Tweets
+from filter import Filter
 import config
 
 DATA_DIR = config.DATA_DIR
@@ -23,10 +24,22 @@ def perform_scan():
 
     sc = Scan()
     sc.run(symbols)
+    sc.percent_change(3.0, 1.5)
+
+    f = Filter()
+    f.run()
 
 def perform_percent_change_scan():
     sc = Scan()
     sc.percent_change(3.0, 1.5)
+
+def perform_filter():
+    f = Filter()
+    f.run()
+
+def perform_earnings_scan():
+    sc = Scan()
+    sc.earnings()
 
 # ==============================================================================
 #   Main
@@ -53,7 +66,14 @@ def main(argv):
         perform_percent_change_scan()
         return
 
-    
+    if argv[0] == '-f':
+        perform_filter()
+        return
+
+    if argv[0] == '-e':
+        perform_earnings_scan()
+        return
+
 
 if __name__ == '__main__':
     main(sys.argv[1:])

@@ -5,18 +5,21 @@ import pandas as pd
 import time
 import config
 import utils
+import random
 from quote import Quote
 from analysis import Analysis
 from renko_pattern import RenkoPatterns
 from finviz import Finviz
 from report import Report
 from yahoo import Yahoo
+from nasdaq import Nasdaq
 
 DATA_DIR = config.DATA_DIR
 ANALYSIS_DIR = config.ANALYSIS_DIR
 sym_file = config.TRADABLE_STOCKS
 current_sym_file = config.CUR_SYM
 ibd_stock_file = config.IBD_STOCKS
+earnings_file = ANALYSIS_DIR + 'earnings.json'
 
 class Scan:
 
@@ -56,15 +59,16 @@ class Scan:
             return
 
         q = Quote()
-        self.spy_df = q.update('SPY')
+        self.spy_df, already_up_to_date = q.update('SPY')
         if self.spy_df is not None:
             latest_date = self.spy_df.index[-1]
         else:
             latest_date = None
 
         for sym in sym_list:
-            df = q.update(sym, latest_date)
-            time.sleep(1)
+            df, already_up_to_date = q.update(sym, latest_date)
+            if already_up_to_date == False:
+                time.sleep(random.randint(1, 5))
  
     def update_analysis(self, symbol_list = None):
 
@@ -165,53 +169,36 @@ class Scan:
         return symbol_list
 
     def percent_change_one_symbol(self, sym, pc, vr):
-        y = Yahoo()
-        res = y.basic(sym)
-        if res == None: 
-            return None        
-        percent_change = res['percent_change']
-        pc_value = float(percent_change[1:].strip('%'))
 
-        volume = float(res['volume'])
-        if res['average_volume'] != 'N/A':
-            average_volume = float(res['average_volume'])
-        else:
-            average_volume = 300000
-        volume_ratio = volume/average_volume
+        df = pd.read_csv(ANALYSIS_DIR + sym + '_analysis.csv', index_col = 0)
+        closes = df['close']
+        last_close = closes[-1]
+        before_last_close = closes[-2]
+        percent_change = ((last_close - before_last_close)/before_last_close) * 100
+        volume = df['volume']
+        vol_sma50 = df['vol_sma50']
+        volume_ratio = float(volume[-1])/float(vol_sma50[-1])
+        rwb = df['rwb']
+        output_str = sym + ': last_close = ' + str(last_close) + ', before_last_close = ' + str(before_last_close)
+        output_str = output_str + ', percent_change = ' + str(percent_change) + '%'
+        output_str = output_str + ', volume_ratio = ' + str(volume_ratio) + ', rwb = ' + str(rwb[-1])
+        if (percent_change >= pc) and (volume_ratio >= vr) and (rwb[-1] >= 0): 
+            output_str = output_str + ', keep'
+            result = [sym, percent_change, volume_ratio]
+        else:       
+            output_str = output_str + ', pass'
+            result = None
 
-        print sym, percent_change, volume, average_volume, volume_ratio
-
-        if percent_change[0] == '+':
-            output_str = 'change is positive'
-            print output_str
-
-            if pc_value >= pc: 
-                output_str = 'pc_value = ' + str(pc_value) + ' is at least ' + str(pc)
-                print output_str
-
-                if volume_ratio >= vr: 
-                    output_str = 'volume_ratio = ' + str(volume_ratio) + ' is at least ' + str(vr)
-                    print output_str
-                    print 'Got a percent_change candidate'
-                    return [sym, percent_change, volume_ratio]
-                else:
-                    output_str = 'but volume_ration = ' + str(volume_ratio) + ' is less than ' + str(vr) + ', pass'
-                    print output_str
-            else:
-                output_str = 'pc_value = ' + str(pc_value) + ' is less than ' + str(pc) + ', pass'
-                print output_str
-        else:
-            output_str = 'negative change, pass'
-            print output_str
-
-        return None
+        print output_str
+        return result
 
     def percent_change(self, pc, vr, symbol_list = None):
 
-        year, month, day, weekday = utils.date_and_time()
-        date_string = str(year) + '-' + str(month) + '-' + str(day)
+        df = pd.read_csv(DATA_DIR + 'SPY.csv', index_col = 0)
+        index = df.index
+        date_string = index[-1]
         print 'Today is', date_string
-
+        
         if os.path.isfile(ANALYSIS_DIR + 'percent_mover.json'):
             percent_mover = json.loads(open(ANALYSIS_DIR + 'percent_mover.json', 'r').read())
         else:
@@ -242,7 +229,6 @@ class Scan:
             ret = self.percent_change_one_symbol(sym, pc, vr)
             if ret != None: 
                 result.append(ret)
-            time.sleep(1)
 
         percent_mover[date_string] = result
 
@@ -258,3 +244,27 @@ class Scan:
                 print item
 
         return result
+
+    def earnings(self, symbol_list = None): 
+
+        scan_symbol_list = []
+
+        if symbol_list != None:
+            for sym in symbol_list:
+                scan_symbol_list.append(sym)
+        else:
+            filelist = [ f for f in os.listdir(DATA_DIR) if f.endswith('.csv') ]
+            for f in filelist:
+                sym = f.split('.')[0]
+                scan_symbol_list.append(sym)
+
+        if os.path.isfile(earnings_file):
+            earnings_db = json.loads(open(earnings_file, 'r').read())
+        else:
+            earnings_db = {}
+
+        n = Nasdaq()
+        for sym in scan_symbol_list:
+            if n.earning(sym) == True:
+                time.sleep(1)
+
