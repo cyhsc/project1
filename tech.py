@@ -41,7 +41,7 @@ class TechData:
     #   - data: Pandas dataframe object containing quotes
     #-------------------------------------------------------------------
     def guppy(self, data):
-        guppy_periods = [3, 5, 7, 10, 12, 15, 30, 35, 40, 45, 50, 60]
+        guppy_periods = [3, 5, 7, 10, 12, 15, 30, 35, 40, 45, 50, 60, 100, 150, 200]
         np_closes = np.array(data['close'], dtype=float)
         for period in guppy_periods:
             data['ema' + str(period)] = talib.EMA(np_closes, timeperiod=period).tolist()
