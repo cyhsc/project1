@@ -352,6 +352,9 @@ class Tweets:
                 print 'Tweet file', filename, 'doesnt exist'
                 continue
 
+            #=========================================================
+            # Go through each tweet message
+            #=========================================================
             last_item = ''
             for item in items: 
                 if len(item) < 1: 
@@ -360,9 +363,3 @@ class Tweets:
                 tm.process(item)
                 last_item = item
         
-            if len(last_item) > 1: 
-                print last_item
-                #wfile = open(filename, 'w')
-                #wfile.write(last_item)
-                #wfile.write('\n')
-                #wfile.close()
