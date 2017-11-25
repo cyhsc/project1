@@ -238,6 +238,19 @@ def write_tweets(user, tweet_objects):
 def get_url_soup(url): 
     try:
         #print url
+        headers = { 'User-Agent' : 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)' }
+        req = urllib2.Request(url, '', headers)
+        html = urllib2.urlopen(req).read()
+        soup = BeautifulSoup(html, "lxml")
+        return soup
+
+    except urllib2.URLError as e:
+        print 'Failed to open', url, 'because of', e.reason
+        return None
+
+def get_url_soup_no_user_agent(url):
+    try:
+        #print url
         html = urlopen(url)
         soup = BeautifulSoup(html, "lxml")
         return soup
