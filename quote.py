@@ -14,6 +14,7 @@ import os
 import time
 import config
 import utils
+import alphavantage
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
@@ -53,7 +54,8 @@ class Quote:
         return base_url + begin_time_str + end_time_str + timeframe_str + '&ignore=.csv'
 
     def form_url_nasdaq(self, sym): 
-        return 'http://www.nasdaq.com/symbol/' + sym.lower().replace('-', '.') + '/historical'
+        #return 'http://www.nasdaq.com/symbol/' + sym.lower().replace('-', '.') + '/historical'
+        return 'http://www.nasdaq.com/symbol/' + sym.lower() + '/historical'
 
     #--------------------------------------------------------------------------------------
     #   Get historical quote from Google
@@ -198,9 +200,13 @@ class Quote:
             if line[0] == '16:00': 
                 #dates.append(time.strftime('%Y-%m-%d'))
                 continue
-            else: 
-                tmp = line[0].split('/')
-                dates.append(tmp[2] + '-' + tmp[0] + '-' + tmp[1])
+
+            if line[1] == 'N/A' or line[2] == 'N/A' or line[3] == 'N/A' or line[4] == 'N/A': 
+                continue
+             
+            tmp = line[0].split('/')
+            dates.append(tmp[2] + '-' + tmp[0] + '-' + tmp[1])
+
             open.append(float(line[1].replace(',', '')))
             high.append(float(line[2].replace(',', '')))
             low.append(float(line[3].replace(',', '')))
@@ -217,6 +223,13 @@ class Quote:
         return df
 
     #--------------------------------------------------------------------------------------
+    #   Get historical quote from AlphaVantage
+    #--------------------------------------------------------------------------------------
+    def get_quotes_alphavantage(self, sym):
+        av = alphavantage.AV()
+        return av.compact_quotes(sym)
+
+    #--------------------------------------------------------------------------------------
     #   Return quote data as Pandas DataFrame object
     #--------------------------------------------------------------------------------------
     def get(self, sym, source):
@@ -226,6 +239,8 @@ class Quote:
             df = self.get_quotes_google(sym)
         elif source == 'nasdaq':
             df = self.get_quotes_nasdaq(sym)
+        elif source == 'alphavantage':
+            df = self.get_quotes_alphavantage(sym)
         else:
             df = None
     
@@ -239,13 +254,15 @@ class Quote:
     #   Update quote data 
     #--------------------------------------------------------------------------------------
     def update(self, sym, latest_date = None):
+        already_up_to_date = False
+
         if os.path.isfile(DATA_DIR + sym + '.csv'): 
             df = pd.read_csv(DATA_DIR + sym + '.csv', index_col = 0)
 
             print latest_date, df.index[-1]
 
             if latest_date is None or df.index[-1] < latest_date:
-                nasdaq_df = self.get(sym, 'nasdaq')
+                nasdaq_df = self.get(sym, 'alphavantage')
                 if nasdaq_df is None:
                     return
 
@@ -261,6 +278,7 @@ class Quote:
                     df = df.append(nasdaq_df)
             else:
                 print 'Quote data already up to date'
+                already_up_to_date = True
         else:
             df = self.get(sym, 'google')
             if df is None: 
@@ -269,7 +287,7 @@ class Quote:
         if df is not None: 
             df.to_csv(DATA_DIR + sym + '.csv')
 
-        return df
+        return df, already_up_to_date
 
     #--------------------------------------------------------------------------------------
     #   Sanitize quote data
