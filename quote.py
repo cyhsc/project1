@@ -25,11 +25,11 @@ DEFAULT_LOOKBACK = 3
 
 class Quote:
 
-    def __init__(self, fresh_data = False, lookback = DEFAULT_LOOKBACK):
+    def __init__(self, last_date = None):
         self.year, self.month, self.day, self.weekday = utils.date_and_time()
-        self.lookback = lookback
-        self.fresh_data = fresh_data
+        self.lookback = DEFAULT_LOOKBACK
         self.quandl_key = open(CONFIG_DIR + 'quandl_key', 'r').readline().strip('\n')
+        self.last_date = last_date
 
     def form_url_quandl(self, sym):
         start = str(self.year - self.lookback) + '-' + str(self.month) + '-' + str(self.day)
@@ -226,7 +226,7 @@ class Quote:
     #   Get historical quote from AlphaVantage
     #--------------------------------------------------------------------------------------
     def get_quotes_alphavantage(self, sym):
-        av = alphavantage.AV()
+        av = alphavantage.AV(self.last_date)
         return av.compact_quotes(sym)
 
     #--------------------------------------------------------------------------------------

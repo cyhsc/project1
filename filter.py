@@ -19,10 +19,8 @@ class Filter:
 
         self.symbol_list = []
         self.sub10 = []
-        self.negsw = []
-        self.possw = []
+        self.volume_sub200k = []
         self.possw_pb = []
-        self.rwb = []
         self.macd_histo_cross = []
     
         filelist = [ f for f in os.listdir(DATA_DIR) if f.endswith('.csv') ]
@@ -51,91 +49,91 @@ class Filter:
 
         return result 
 
-    def run(self):
-      
+    def find_sub10(self, symbol_list):
+
+        print 'Filtering for stocks with close < $10 ....'
+
         for sym in self.symbol_list:
             df = pd.read_csv(ANALYSIS_DIR + sym + '_analysis.csv', index_col = 0)
-
             close = df['close']
             if close[-1] < 10:
                 self.sub10.append(sym)
 
+    def find_volume_sub200k(self, symbol_list):
+
+        print 'Filtering for stocks with average volume < 200k ....'      
+
+        for sym in self.symbol_list:
+            df = pd.read_csv(ANALYSIS_DIR + sym + '_analysis.csv', index_col = 0)
+            vol_sma50 = df['vol_sma50']
+            if vol_sma50[-1] < 200000:
+                self.volume_sub200k.append([sym, int(vol_sma50[-1])])
+
+    def find_non_neg_slow_width(self, symbol_list):
+    
+        print 'Filtering for stocks with non negative slow width ....'
+
+        possw_pb = []
+
+        for sym in self.symbol_list:
+            df = pd.read_csv(ANALYSIS_DIR + sym + '_analysis.csv', index_col = 0)
             sw = df['swidth']
             sw_pb = df['swidth_pb']
-            if sw[-1] < 0:
-                self.negsw.append(sym)
+            if sw[-1] >= 0:
+                possw_pb.append([sym, sw_pb[-1]])
+
+        print ' - Sorting postive slow width list ...'
+
+        for item in possw_pb:
+            inserted = False
+            for idx, val in enumerate(self.possw_pb):
+                if item[1] > val[1]:
+                    continue
+                else:
+                    self.possw_pb.insert(idx, item)
+                    inserted = True
+                    break
+
+            if inserted == False:
+                self.possw_pb.append(item)
+
+        print ' - Add in fast width value ...'
+    
+        for item in self.possw_pb: 
+            df = pd.read_csv(ANALYSIS_DIR + item[0] + '_analysis.csv', index_col = 0)
+            fw_pb = df['fwidth_pb']
+            item.append(fw_pb[-1])
+            macd_hist_pb = df['macd_hist_pb']
+            item.append(macd_hist_pb[-1])
+        
+        print ' - Writing to filter result file ...'
+
+        fp = open(ANALYSIS_DIR + 'filter.txt', 'a')
+
+        output_str = '-------------- Sorted Slow Width List, total = ' + str(len(self.possw_pb)) + '  -----------------\n'
+        fp.write(output_str)
+        print output_str
+
+        for item in self.possw_pb:
+            output_str = '[%s, %d, %d, %d]' % (item[0], item[1], item[2], item[3])
+            if (item[2] > 0 and item[2] < 3 and item[3] > 0) or (item[2] > 0 and item[3] > 0 and item[3] < 3):
+                output_str = output_str + ' *\n'
             else:
-                self.possw.append([sym, sw[-1]])
-                self.possw_pb.append([sym, sw_pb[-1]])
-
-                rwb = df['rwb']
-                if rwb[-1] >= 0:
-                    self.rwb.append(sym)
-
-                    macd_hist_pb = df['macd_hist_pb']
-                    if (macd_hist_pb[-1] > 0) and (macd_hist_pb[-1] <= 10):
-                        for value in macd_hist_pb[::-1]: 
-                            if value < 0: 
-                                break
-                        self.macd_histo_cross.append([sym, macd_hist_pb[-1], value])
-
-        sorted_possw_pb = self.sort_possw_pb()
-
-        #################################################################
-        # Print out the results
-        #################################################################
-
-        print '-------------- Symbol List -----------------'
-        print self.symbol_list
-        print len(self.symbol_list)
-
-        print '-------------- Sub10 -----------------'
-        print self.sub10
-        print len(self.sub10)
-
-        print '-------------- Negative Slow Width -----------------'
-        print self.negsw
-        print len(self.negsw)
-
-        print '-------------- Postive Slow Width -----------------'
-        print self.possw
-        print len(self.possw)
-
-        print '-------------- Postive RWB -----------------'
-        print self.rwb
-        print len(self.rwb)
-
-        print '-------------- MACD Histo Cross -----------------'
-        min = 10000
-        max = 0
-        for item in self.macd_histo_cross:
-             if item[1] < min:
-                 min = item[1]
-             if item[1] > max:
-                 max = item[1]
-
-        fp = open(ANALYSIS_DIR + 'filter.txt', 'w')
-
-        print min, max
-        output_str = str(min) + ', ' + str(max) + '\n'
-        fp.write(output_str)
-
-        for i in range(min, max + 1): 
-            for item in self.macd_histo_cross:
-                if item[1] == i:
-                    print item
-                    output_str = '[%s, %d, %d]\n' % (item[0], item[1], item[2])
-                    fp.write(output_str)
-  
-        print len(self.macd_histo_cross)
-        output_str = str(len(self.macd_histo_cross)) + '\n'
-        fp.write(output_str)
-
-        print '-------------- Sorted Slow Width List -----------------'
-        for item in sorted_possw_pb: 
-            print item
-            output_str = '[%s, %d]\n' % (item[0], item[1])
+                output_str = output_str + '\n'
+            print output_str
             fp.write(output_str)
-         
+
         fp.close()
 
+    def run(self):
+
+        fp = open(ANALYSIS_DIR + 'filter.txt', 'w')
+        output_str = '********************  Filtering Results ********************\n'
+        fp.write(output_str)
+        print output_str
+        fp.close()
+
+        self.find_sub10(self.symbol_list)
+        self.find_volume_sub200k(self.symbol_list)
+        self.find_non_neg_slow_width(self.symbol_list)
+      

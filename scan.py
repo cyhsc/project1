@@ -23,9 +23,10 @@ earnings_file = ANALYSIS_DIR + 'earnings.json'
 
 class Scan:
 
-    def __init__(self):
+    def __init__(self, last_date = None):
         self.latest_date = ''
         self.spy_df = None
+        self.last_date = last_date
 
     def get_analysis_df(self, sym):
         analysis_df = pd.read_csv(ANALYSIS_DIR + sym + '_analysis.csv', index_col = 0)
@@ -58,7 +59,7 @@ class Scan:
         if sym_list is None:
             return
 
-        q = Quote()
+        q = Quote(self.last_date)
         self.spy_df, already_up_to_date = q.update('SPY')
         if self.spy_df is not None:
             latest_date = self.spy_df.index[-1]

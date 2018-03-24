@@ -12,7 +12,7 @@ def update_tweets():
     t.update()
     t.process()
 
-def perform_scan():
+def perform_scan(last_date):
 
     symbols = []
 
@@ -22,7 +22,7 @@ def perform_scan():
         if sym != 'SPY':
             symbols.append(sym)
 
-    sc = Scan()
+    sc = Scan(last_date)
     sc.run(symbols)
     sc.percent_change(3.0, 1.5)
 
@@ -50,16 +50,16 @@ def main(argv):
         print 'Dont know what task to run'
         return
 
-    if len(argv) > 1: 
-        print 'Too many arguments'
-        return
-
     if argv[0] == '-t':
         update_tweets()
         return
 
     if argv[0] == '-s':
-        perform_scan()
+        if len(argv) == 2:
+            last_date = argv[1]
+        else:
+            last_date = None
+        perform_scan(last_date)
         return
 
     if argv[0] == '-p':
